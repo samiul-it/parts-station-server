@@ -25,6 +25,7 @@ async function run() {
     await client.connect();
     const productCollection = client.db("parts-station").collection("products");
     const orderCollection = client.db("parts-station").collection("orders");
+    const userCollection=client.db("parts-station").collection("users");
 
 
      app.get("/products", async (req, res) => {
@@ -49,6 +50,34 @@ async function run() {
        const result=await  orderCollection.insertOne(newOrder);
        res.send(result);
      })
+
+     //My Orders
+
+     app.get("/myorders/:email",async (req,res)=>{
+       const email=req.params.email;
+       const query={userEmail:email};
+       const orders=await orderCollection.find(query).toArray();
+       res.send(orders);
+     })
+
+     //Reviews 
+
+     app.get("/reviews",async (req,res)=>{
+       const query={};
+       const reviews=await userCollection.find(query).toArray();
+       res.send(reviews);
+     })
+
+     //My Reviews
+
+     app.get("/reviews/:email", async (req, res) => {
+       const email=req.params.email;
+       const query = {email:email};
+       const myreview = await userCollection.find(query).toArray();
+       res.send(myreview);
+     });
+
+
 
 
 
