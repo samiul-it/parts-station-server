@@ -34,8 +34,9 @@ function verifyJWT(req, res, next) {
     if (err) {
       return res.status(403).send({ message: "Forbidden access" });
     }
-    // console.log("decoded", decoded);
+
     req.decoded = decoded;
+    // console.log(decoded);
     next();
   });
 }
@@ -73,17 +74,17 @@ async function run() {
 
     app.get("/myorders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
-      console.log(email)
-      const decodeEmail=req.decoded.email;
-      console.log(decodeEmail);
-      const query = { userEmail: email };
-      const orders = await orderCollection.find(query).toArray();
-      res.send(orders);
+      const decodedEmail = req.decoded.email;
+      // console.log(decodedEmail);
+      // console.log(email);
+      if (email === decodedEmail) {
+        const query = { userEmail: email };
+        const orders = await orderCollection.find(query).toArray();
+        res.send(orders);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
     });
-
-
-
-
 
     //Reviews
 
@@ -107,11 +108,13 @@ async function run() {
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
+      // console.log("Email", email);
       const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
         $set: user,
       };
+
       const result = await userCollection.updateOne(filter, updateDoc, options);
       const token = jwt.sign(
         { email: email },
@@ -123,7 +126,7 @@ async function run() {
 
     //Load All Users
 
-    app.get("/users", async (req, res) => {
+    app.get("/users",verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
