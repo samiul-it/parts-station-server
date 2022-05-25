@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const query = require("express/lib/middleware/query");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -47,6 +48,7 @@ async function run() {
     const productCollection = client.db("parts-station").collection("products");
     const orderCollection = client.db("parts-station").collection("orders");
     const userCollection = client.db("parts-station").collection("users");
+    const paymentCollection = client.db("parts-station").collection("payment");
 
     app.get("/products", async (req, res) => {
       const query = {};
@@ -178,6 +180,41 @@ async function run() {
       const query = { _id: ObjectId(id) };
       const order = await orderCollection.findOne(query);
       res.send(order);
+    });
+
+    //Stripe Payment Intent
+
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const price = req.body.orderPrice;
+      
+      const amount = price * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    //Updating Payment and Storing Payment Informations
+
+    app.patch("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatePayStatus = await orderCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatePayStatus);
     });
 
 
