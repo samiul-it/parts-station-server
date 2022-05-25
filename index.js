@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const query = require("express/lib/middleware/query");
 require("dotenv").config();
@@ -19,6 +20,25 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
+
+//Veriying Token
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    // console.log("decoded", decoded);
+    req.decoded = decoded;
+    next();
+  });
+}
 
 async function run() {
   try {
@@ -43,7 +63,7 @@ async function run() {
 
     //Posing Orders
 
-    app.post("/orders", async (req, res) => {
+    app.post("/orders",  async (req, res) => {
       const newOrder = req.body;
       const result = await orderCollection.insertOne(newOrder);
       res.send(result);
@@ -51,7 +71,7 @@ async function run() {
 
     //My Orders
 
-    app.get("/myorders/:email", async (req, res) => {
+    app.get("/myorders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
       const orders = await orderCollection.find(query).toArray();
@@ -76,6 +96,7 @@ async function run() {
     });
 
     //Add User
+    // Issuing Token 
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -85,7 +106,12 @@ async function run() {
         $set: user,
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
-      res.send(result);
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1h" }
+      );
+      res.send({result,token});
     });
 
     //Load All Users
