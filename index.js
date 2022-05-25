@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const query = require("express/lib/middleware/query");
 require("dotenv").config();
@@ -63,7 +63,7 @@ async function run() {
 
     //Posing Orders
 
-    app.post("/orders",  async (req, res) => {
+    app.post("/orders", async (req, res) => {
       const newOrder = req.body;
       const result = await orderCollection.insertOne(newOrder);
       res.send(result);
@@ -73,10 +73,17 @@ async function run() {
 
     app.get("/myorders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
+      console.log(email)
+      const decodeEmail=req.decoded.email;
+      console.log(decodeEmail);
       const query = { userEmail: email };
       const orders = await orderCollection.find(query).toArray();
       res.send(orders);
     });
+
+
+
+
 
     //Reviews
 
@@ -96,7 +103,7 @@ async function run() {
     });
 
     //Add User
-    // Issuing Token 
+    // Issuing Token
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -111,15 +118,15 @@ async function run() {
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "1h" }
       );
-      res.send({result,token});
+      res.send({ result, token });
     });
 
     //Load All Users
 
-    app.get("/users",async(req,res)=>{
-      const users=await userCollection.find().toArray();
+    app.get("/users", async (req, res) => {
+      const users = await userCollection.find().toArray();
       res.send(users);
-    })
+    });
 
     //Make Admin
 
@@ -128,8 +135,8 @@ async function run() {
       const filter = { email: email };
       const updateDoc = {
         $set: {
-          role:"admin",
-        }
+          role: "admin",
+        },
       };
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -137,15 +144,13 @@ async function run() {
 
     //isAdmin?
 
-    app.get("/admin/:email",async (req,res)=>{
-      const email=req.params.email;
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
 
       res.send({ admin: isAdmin });
-    })
-
-
+    });
 
     //Add Review
 
@@ -156,17 +161,13 @@ async function run() {
       const options = { upsert: true };
       const updateDoc = {
         $set: {
-          review:user.review,
-          rating:user.rating,
+          review: user.review,
+          rating: user.rating,
         },
       };
       const result = await userCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
-
-
-
-
   } finally {
   }
 }
