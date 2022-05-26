@@ -157,6 +157,36 @@ async function run() {
       res.send({ admin: isAdmin });
     });
 
+    //Update User Profile
+
+    app.put("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: {
+          city: user.city,
+          edu: user.edu,
+          phone: user.phone,
+          linkedin: user.link,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    });
+
+    //LoadProfile data
+
+    app.get("/profile/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const myprofile = await userCollection.find(query).toArray();
+      res.send(myprofile);
+    });
+
+
+
     //Add Review
 
     app.put("/reviews/:email", async (req, res) => {
