@@ -107,6 +107,36 @@ async function run() {
       }
     });
 
+    //All Orders [ADMIN]
+
+    app.get("/allorders/", verifyJWT, async (req, res) => {
+      
+      const orders = await orderCollection.find().toArray();
+      res.send(orders);
+     
+    });
+
+    //Deliver an order
+
+    app.put("/deliver-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      // const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          status: "delivered",
+        },
+      };
+      const result = await orderCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    
+
+
+
+
+
     //Reviews
 
     app.get("/reviews", async (req, res) => {
