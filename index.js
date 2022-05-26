@@ -99,6 +99,7 @@ async function run() {
       const decodedEmail = req.decoded.email;
       // console.log(decodedEmail);
       // console.log(email);
+      // console.log(email,decodedEmail);
       if (email === decodedEmail) {
         const query = { userEmail: email };
         const orders = await orderCollection.find(query).toArray();
@@ -201,7 +202,7 @@ async function run() {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
-      console.log(isAdmin);
+      // console.log(isAdmin);
 
       res.send({ admin: isAdmin });
     });
