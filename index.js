@@ -80,6 +80,17 @@ async function run() {
       res.send(result);
     });
 
+    //Deleting product
+
+
+    app.delete("/delete-product/:id", async (req, res) => {
+      const id = req.params.id;
+      const qurery = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(qurery);
+      res.send(result);
+    });
+
+
     //My Orders
 
     app.get("/myorders/:email", verifyJWT, async (req, res) => {
@@ -136,7 +147,7 @@ async function run() {
 
     //Load All Users
 
-    app.get("/users",verifyJWT, async (req, res) => {
+    app.get("/users", verifyJWT, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
@@ -193,8 +204,6 @@ async function run() {
       res.send(myprofile);
     });
 
-
-
     //Add Review
 
     app.put("/reviews/:email", async (req, res) => {
@@ -213,7 +222,7 @@ async function run() {
     });
 
     //Load Order for Payment
-    app.get("/order/:id",  async (req, res) => {
+    app.get("/order/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const order = await orderCollection.findOne(query);
@@ -224,7 +233,7 @@ async function run() {
 
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const price = req.body.orderPrice;
-      
+
       const amount = price * 100;
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -254,9 +263,6 @@ async function run() {
       );
       res.send(updatePayStatus);
     });
-
-
-
   } finally {
   }
 }
