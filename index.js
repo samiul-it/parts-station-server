@@ -49,6 +49,7 @@ async function run() {
     const orderCollection = client.db("parts-station").collection("orders");
     const userCollection = client.db("parts-station").collection("users");
     const paymentCollection = client.db("parts-station").collection("payment");
+    const reviewCollection = client.db("parts-station").collection("reviews");
 
     app.get("/products", async (req, res) => {
       const query = {};
@@ -134,14 +135,12 @@ async function run() {
     
 
 
-
-
-
     //Reviews
 
     app.get("/reviews", async (req, res) => {
       const query = {};
-      const reviews = await userCollection.find(query).toArray();
+      const reviews = await reviewCollection.find(query).toArray();
+      // console.log(reviews);
       res.send(reviews);
     });
 
@@ -247,7 +246,7 @@ async function run() {
           rating: user.rating,
         },
       };
-      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const result = await reviewCollection.updateOne(filter, updateDoc, options);
       res.send(result);
     });
 
