@@ -133,6 +133,23 @@ async function run() {
       res.send(result);
     });
 
+
+
+    //Cancel an order
+
+    app.put("/cancel-order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      // const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          status: "canceled",
+        },
+      };
+      const result = await orderCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     
 
 
